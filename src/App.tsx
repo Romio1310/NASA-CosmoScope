@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Rocket, Users, Sparkles, Telescope, Gamepad2 } from 'lucide-react';
 import LandingPage from './components/LandingPage';
 import CommunityTab from './components/CommunityTab';
@@ -8,8 +8,58 @@ import ExploreUniverse from './components/ExploreUniverse';
 type Tab = 'community' | 'whatsNew' | 'explore';
 
 function App() {
-  const [showLanding, setShowLanding] = useState(true);
-  const [activeTab, setActiveTab] = useState<Tab>('explore');
+  // Initialize state based on URL hash and localStorage
+  const getInitialState = () => {
+    const hash = window.location.hash.slice(1); // Remove the # symbol
+    const savedState = localStorage.getItem('nasa-cosmoscope-state');
+    
+    if (hash && ['explore', 'community', 'whatsNew'].includes(hash)) {
+      return { showLanding: false, activeTab: hash as Tab };
+    }
+    
+    if (savedState) {
+      try {
+        const parsed = JSON.parse(savedState);
+        return parsed;
+      } catch (e) {
+        console.error('Error parsing saved state:', e);
+      }
+    }
+    
+    return { showLanding: true, activeTab: 'explore' as Tab };
+  };
+
+  const initialState = getInitialState();
+  const [showLanding, setShowLanding] = useState(initialState.showLanding);
+  const [activeTab, setActiveTab] = useState<Tab>(initialState.activeTab);
+
+  // Save state to localStorage and update URL whenever state changes
+  useEffect(() => {
+    const state = { showLanding, activeTab };
+    localStorage.setItem('nasa-cosmoscope-state', JSON.stringify(state));
+    
+    if (!showLanding) {
+      window.history.replaceState(null, '', `#${activeTab}`);
+    } else {
+      window.history.replaceState(null, '', '/');
+    }
+  }, [showLanding, activeTab]);
+
+  // Handle browser back/forward buttons
+  useEffect(() => {
+    const handlePopState = () => {
+      const hash = window.location.hash.slice(1);
+      if (hash && ['explore', 'community', 'whatsNew'].includes(hash)) {
+        setShowLanding(false);
+        setActiveTab(hash as Tab);
+      } else {
+        setShowLanding(true);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   if (showLanding) {
     return <LandingPage onEnter={() => setShowLanding(false)} />;
@@ -18,15 +68,30 @@ function App() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
       {/* Header */}
-      <header className="bg-slate-900/80 backdrop-blur-sm border-b border-slate-800 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-3">
-              <Rocket className="w-8 h-8 text-cyan-400" />
-              <h1 className="text-2xl font-bold text-white tracking-tight">
-                NASA CosmoScope
-              </h1>
-            </div>
+      <header className="bg-gradient-to-r from-black/60 via-slate-900/70 to-black/60 backdrop-blur-xl border-b border-cyan-500/20 sticky top-0 z-50 shadow-2xl shadow-cyan-500/10">
+        {/* Glossy overlay effect */}
+        <div className="absolute inset-0 bg-gradient-to-b from-white/5 via-transparent to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-blue-500/5 to-cyan-500/5 pointer-events-none" />
+        
+        <div className="relative max-w-7xl mx-auto px-2 sm:px-4 lg:px-6">
+          <div className="flex items-center justify-between h-20">
+            <button 
+              onClick={() => setShowLanding(true)}
+              className="flex items-center space-x-3 hover:opacity-80 transition-all group cursor-pointer -ml-2"
+              title="Back to Landing Page"
+            >
+              <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-full flex items-center justify-center shadow-xl shadow-cyan-500/40 ring-2 ring-cyan-400/20 group-hover:scale-110 transition-transform">
+                <Rocket className="w-7 h-7 text-white drop-shadow-lg" />
+              </div>
+              <div className="flex flex-col text-left">
+                <h1 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 tracking-tight drop-shadow-lg">
+                  NASA CosmoScope
+                </h1>
+                <p className="text-xs text-slate-300 font-medium drop-shadow-sm">
+                  Exploring the Universe • One Pixel at a Time
+                </p>
+              </div>
+            </button>
             <nav className="flex space-x-1">
               <button
                 onClick={() => setActiveTab('explore')}
@@ -62,7 +127,9 @@ function App() {
                 <span className="font-medium">What's New</span>
               </button>
               <a
-                href="#"
+                href="https://raydekk.github.io/StarsAndPlanets/"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="flex items-center space-x-2 px-4 py-2 rounded-lg transition-all text-slate-300 hover:text-white hover:bg-slate-800"
               >
                 <Gamepad2 className="w-5 h-5" />

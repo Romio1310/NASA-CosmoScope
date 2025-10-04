@@ -35,7 +35,7 @@ const SAMPLE_POSTS: CommunityPost[] = [
     userName: 'LunarExplorer',
     title: 'Artemis Mission: Moon South Pole Mapping',
     description: 'High-resolution imagery from NASA\'s Artemis lunar mapping mission reveals permanently shadowed craters at the Moon\'s south pole. These regions may contain water ice crucial for future human missions.',
-    imageUrl: 'https://images.pexels.com/photos/2162/sky-space-telescope-universe.jpg?auto=compress&cs=tinysrgb&w=800',
+    imageUrl: '/lunar-south-pole.jpg',
     likesCount: 823,
     createdAt: '1 day ago'
   }
@@ -171,7 +171,7 @@ export default function CommunityTab() {
         {posts.map((post) => (
           <div
             key={post.id}
-            className="bg-slate-800 rounded-xl overflow-hidden border border-slate-700 hover:border-cyan-500/50 transition-all hover:shadow-xl hover:shadow-cyan-500/10 group"
+            className="bg-slate-800 rounded-xl overflow-hidden border border-slate-700 hover:border-cyan-500/50 transition-all hover:shadow-xl hover:shadow-cyan-500/10 group flex flex-col h-auto min-h-[400px]"
           >
             <div className="relative aspect-video overflow-hidden">
               <img
@@ -181,13 +181,15 @@ export default function CommunityTab() {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent opacity-60" />
             </div>
-            <div className="p-5 space-y-3">
-              <h3 className="text-lg font-semibold text-white line-clamp-1">
+            <div className="p-5 space-y-3 flex-1 flex flex-col">
+              <h3 className="text-lg font-semibold text-white mb-2">
                 {post.title}
               </h3>
-              <p className="text-slate-400 text-sm line-clamp-2">
-                {post.description}
-              </p>
+              <div className="flex-1 max-h-20 overflow-y-auto">
+                <p className="text-slate-400 text-sm leading-relaxed">
+                  {post.description}
+                </p>
+              </div>
               <div className="flex items-center justify-between pt-3 border-t border-slate-700">
                 <div className="flex items-center space-x-4">
                   <span className="text-sm text-slate-400">{post.userName}</span>
