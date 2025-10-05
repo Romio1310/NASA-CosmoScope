@@ -91,6 +91,9 @@ Chat naturally - imagine you're texting a friend who happens to know a lot about
       const isProduction = !window.location.hostname.includes('localhost');
       const apiUrl = isProduction ? '/api/chat' : 'http://localhost:3001/api/chat';
       
+      console.log('🌐 Environment:', isProduction ? 'Production (Vercel)' : 'Development (Local)');
+      console.log('🔗 API URL:', apiUrl);
+      
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
