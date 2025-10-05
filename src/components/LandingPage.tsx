@@ -10,34 +10,33 @@ export default function LandingPage({ onEnter }: LandingPageProps) {
       {/* Hero Section - Full Screen */}
       <section className="min-h-screen relative overflow-hidden bg-black">
         {/* Video Background - Smooth Cinematic */}
-        <div className="absolute inset-0">
+        <div className="absolute inset-0 z-0">
           <video 
             autoPlay 
             muted 
             loop 
             playsInline
-            preload="metadata"
-            className="w-full h-full object-cover opacity-60 animate-pulse"
+            preload="auto"
+            className="w-full h-full object-cover opacity-70"
             style={{
               filter: 'brightness(0.8) contrast(1.1) saturate(1.2)',
               transform: 'scale(1.02)',
-              willChange: 'transform',
-              backfaceVisibility: 'hidden',
-              animationDuration: '8s'
             }}
             onCanPlay={(e) => {
               const video = e.target as HTMLVideoElement;
               video.playbackRate = 0.75; // 75% speed - perfect cinematic slow motion
+              console.log('Video playing successfully');
+            }}
+            onError={(e) => {
+              console.error('Video error:', e);
             }}
           >
             <source src="/space-video-30sec.mov" type="video/mp4" />
           </video>
           
           {/* Cinematic overlays */}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/50" />
-          <div className="absolute inset-0 bg-gradient-to-r from-cyan-900/10 via-transparent to-blue-900/10" />
-          
-
+          <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/50 z-10" />
+          <div className="absolute inset-0 bg-gradient-to-r from-cyan-900/10 via-transparent to-blue-900/10 z-10" />
         </div>
 
         {/* Animated Stars */}
