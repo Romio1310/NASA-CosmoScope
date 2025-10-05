@@ -1,4 +1,4 @@
-// Vercel API - Exact copy of working localhost server
+// Vercel API - Enhanced to handle both simple messages and contextual prompts
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyBH7RuCsY0Dze6oKsu5DIrKcfr0aY0lokg';
 
 // Simple typo corrections (exact copy from localhost)
@@ -79,6 +79,7 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
+
   try {
     const { message } = req.body;
     
@@ -86,11 +87,23 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Message is required' });
     }
 
-    console.log('� User message:', message);
+    console.log('💬 Received message length:', message.length);
     
-    // Fix common typos
-    const fixedMessage = fixTypos(message);
-    console.log('🔧 Fixed message:', fixedMessage);
+    // Extract actual user message from contextual prompt if needed
+    let actualUserMessage = message;
+    
+    // Check if this is a contextual prompt (contains "User just said:")
+    if (message.includes('User just said:')) {
+      const userMsgMatch = message.match(/User just said: (.+)/);
+      if (userMsgMatch && userMsgMatch[1]) {
+        actualUserMessage = userMsgMatch[1].replace(/\n\nRespond naturally as CosmoBuddy:$/, '').trim();
+        console.log('📝 Extracted user message from context:', actualUserMessage);
+      }
+    }
+    
+    // Fix common typos on the actual user message
+    const fixedMessage = fixTypos(actualUserMessage);
+    console.log('🔧 Processing message:', fixedMessage);
     
     // Try direct response first
     const directResponse = getDirectResponse(fixedMessage);
@@ -99,12 +112,12 @@ export default async function handler(req, res) {
       return res.json({ 
         response: directResponse,
         status: 'direct',
-        typosFixed: message !== fixedMessage
+        typosFixed: actualUserMessage !== fixedMessage
       });
     }
 
-    // Use AI for complex questions
-    const aiPrompt = `You are CosmoBuddy, a friendly AI assistant who loves space and science. 
+    // Use AI for complex questions - send the full contextual prompt to AI
+    const aiPrompt = message.includes('User just said:') ? message : `You are CosmoBuddy, a friendly AI assistant who loves space and science. 
 
 User asked: "${fixedMessage}"
 
@@ -112,14 +125,14 @@ Give a helpful, enthusiastic response in 1-2 sentences. Be friendly and conversa
 
     console.log('🤖 Using AI for response...');
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         contents: [{ parts: [{ text: aiPrompt }] }],
         generationConfig: {
-          temperature: 0.6,
-          maxOutputTokens: 150,
+          temperature: 0.7,
+          maxOutputTokens: 200,
           topP: 0.8,
           topK: 10
         }
@@ -134,18 +147,18 @@ Give a helpful, enthusiastic response in 1-2 sentences. Be friendly and conversa
     const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
     
     if (aiResponse && aiResponse.trim()) {
-      console.log('✅ AI response:', aiResponse);
+      console.log('✅ AI response generated');
       res.json({ 
         response: aiResponse.trim(),
         status: 'ai',
-        typosFixed: message !== fixedMessage
+        typosFixed: actualUserMessage !== fixedMessage
       });
     } else {
       console.log('🎯 Using fallback');
       res.json({ 
         response: "I'm here and ready to help! What would you like to know? I love talking about space, science, or anything else! 🚀✨",
         status: 'fallback',
-        typosFixed: message !== fixedMessage
+        typosFixed: actualUserMessage !== fixedMessage
       });
     }
 
