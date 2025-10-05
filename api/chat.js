@@ -81,13 +81,20 @@ export default async function handler(req, res) {
   }
 
   try {
+    console.log('🚀 Vercel API called!');
+    console.log('📍 Environment:', process.env.NODE_ENV);
+    console.log('🔑 API Key available:', !!GEMINI_API_KEY);
+    console.log('🔑 API Key length:', GEMINI_API_KEY ? GEMINI_API_KEY.length : 0);
+    
     const { message } = req.body;
     
     if (!message) {
+      console.log('❌ No message provided');
       return res.status(400).json({ error: 'Message is required' });
     }
 
     console.log('💬 Received message length:', message.length);
+    console.log('💬 First 100 chars:', message.substring(0, 100));
     
     // Extract actual user message from contextual prompt if needed
     let actualUserMessage = message;
@@ -108,13 +115,15 @@ export default async function handler(req, res) {
     // Try direct response first
     const directResponse = getDirectResponse(fixedMessage);
     if (directResponse) {
-      console.log('⚡ Direct response used');
-      return res.json({ 
+      console.log('⚡ Direct response used for:', fixedMessage);
+      return res.status(200).json({ 
         response: directResponse,
         status: 'direct',
         typosFixed: actualUserMessage !== fixedMessage
       });
     }
+    
+    console.log('🤖 No direct response found, trying AI...');
 
     // Use AI for complex questions - send the full contextual prompt to AI
     const aiPrompt = message.includes('User just said:') ? message : `You are CosmoBuddy, a friendly AI assistant who loves space and science. 
@@ -163,10 +172,18 @@ Give a helpful, enthusiastic response in 1-2 sentences. Be friendly and conversa
     }
 
   } catch (error) {
-    console.error('❌ Error:', error);
-    res.status(500).json({ 
-      error: 'Failed to get response',
-      message: error.message 
+    console.error('❌ Vercel API Error:', error);
+    console.error('❌ Error details:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
+    
+    // Return a friendly response instead of an error
+    return res.status(200).json({ 
+      response: "I'm here and ready to help! What would you like to know? I love talking about space, science, or anything else! 🚀✨",
+      status: 'error_fallback',
+      error: error.message 
     });
   }
 }
