@@ -5,15 +5,11 @@
   "installCommand": "npm install",
   "devCommand": "npm run dev",
   "functions": {
-    "pages/api/chat.js": {
-      "maxDuration": 15
+    "api/chat.js": {
+      "maxDuration": 30
     }
   },
   "routes": [
-    {
-      "src": "/api/chat",
-      "dest": "/pages/api/chat"
-    },
     {
       "src": "/[^.]+",
       "dest": "/",
