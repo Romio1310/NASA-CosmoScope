@@ -6,7 +6,8 @@
   "devCommand": "npm run dev",
   "functions": {
     "api/chat.js": {
-      "maxDuration": 30
+      "maxDuration": 30,
+      "memory": 1024
     }
   },
   "routes": [

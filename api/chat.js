@@ -1,208 +1,159 @@
-// Vercel API Route for NASA CosmoScope Chatbot
-// Correct structure: /api/chat.js
+// Vercel API - Exact copy of working localhost server
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyBH7RuCsY0Dze6oKsu5DIrKcfr0aY0lokg';
+
+// Simple typo corrections (exact copy from localhost)
+const fixTypos = (text) => {
+  const corrections = {
+    'wat': 'what', 'hw': 'how', 'u': 'you', 'ur': 'your', 'cant': 'cannot',
+    'wnt': 'want', 'teh': 'the', 'adn': 'and', 'eart': 'earth', 'mars': 'Mars',
+    'planit': 'planet', 'astronot': 'astronaut', 'nasa': 'NASA'
+  };
+  
+  let fixed = text.toLowerCase();
+  for (const [typo, correct] of Object.entries(corrections)) {
+    fixed = fixed.replace(new RegExp('\\b' + typo + '\\b', 'g'), correct);
+  }
+  return fixed;
+};
+
+// Simple responses for space questions (exact copy from localhost)
+const getDirectResponse = (message) => {
+  const msg = message.toLowerCase();
+  
+  if (msg.includes('mars')) {
+    return "Mars is the red planet! 🔴 It's the fourth planet from the Sun, about half Earth's size, with two small moons (Phobos and Deimos). The surface is covered in iron oxide (rust), giving it that iconic red color. Temperatures range from -195°F to 70°F. Scientists have found evidence of ancient water flows and are actively searching for signs of past life! What else about Mars interests you? 🚀";
+  }
+  
+  if (msg.includes('earth')) {
+    return "Earth is our amazing blue planet! 🌍 It's the third planet from the Sun and the only known planet with life. About 71% of Earth's surface is water, which is why it looks blue from space. Earth has one moon and takes 365.25 days to orbit the Sun. The atmosphere is perfect for life - 78% nitrogen, 21% oxygen! What would you like to know about our home planet? ✨";
+  }
+  
+  if (msg.includes('space') || msg.includes('universe')) {
+    return "Space is incredible! 🌌 The universe is about 13.8 billion years old and contains billions of galaxies, each with billions of stars. Our galaxy, the Milky Way, has over 200 billion stars! Space is mostly empty, but it's filled with amazing phenomena like black holes, nebulae, and potentially habitable planets. What aspect of space fascinates you most? 🚀";
+  }
+  
+  if (msg.includes('hello') || msg.includes('hi') || msg.includes('hey')) {
+    return "Hey there! 👋 I'm CosmoBuddy, your space-loving AI friend! I'm super excited to chat with you about anything - space, science, or whatever's on your mind. What would you like to explore today? 🚀✨";
+  }
+  
+  if (msg.includes('sun')) {
+    return "The Sun is our local star! ☀️ It's a massive ball of hot plasma, about 109 times wider than Earth. The Sun's core temperature reaches 27 million degrees Fahrenheit! It provides all the energy for life on Earth through nuclear fusion, converting hydrogen into helium. Fun fact: The Sun is about 4.6 billion years old and has enough fuel to shine for another 5 billion years! 🌟";
+  }
+  
+  if (msg.includes('rocket')) {
+    return "Rockets work on Newton's third law - for every action, there's an equal and opposite reaction! 🚀 They burn fuel to create hot gases that shoot out the bottom at high speed, pushing the rocket upward. The faster the exhaust, the more thrust! Modern rockets use liquid oxygen and fuel like RP-1 or hydrogen. It's like a controlled explosion pointing downward to go up! Pretty cool, right? ✨";
+  }
+  
+  if (msg.includes('moon')) {
+    return "The Moon is Earth's only natural satellite! 🌙 It's about 1/4 the size of Earth and 238,855 miles away. The Moon causes our tides and helps stabilize Earth's rotation. Fun fact: The same side always faces Earth because the Moon's rotation matches its orbit! Apollo missions brought back 842 pounds of moon rocks. What would you like to know about our lunar neighbor? 🌕";
+  }
+  
+  if (msg.includes('jupiter')) {
+    return "Jupiter is the giant of our solar system! 🪐 It's so massive that all other planets combined could fit inside it! Jupiter has over 80 moons, including the four largest: Io, Europa, Ganymede, and Callisto. The Great Red Spot is a storm bigger than Earth that's been raging for centuries! Jupiter acts like a cosmic vacuum cleaner, protecting inner planets from asteroids. Amazing, right? 🌟";
+  }
+  
+  if (msg.includes('black hole')) {
+    return "Black holes are mind-blowing! 🕳️ They're regions where gravity is so strong that nothing can escape - not even light! They form when massive stars collapse. The edge is called the event horizon - cross it and you're gone forever! But here's the weird part: time slows down near them due to Einstein's relativity. Scientists recently photographed one in galaxy M87! Space is wild! 🌌";
+  }
+  
+  if (msg.includes('astronaut')) {
+    return "Astronauts are space heroes! 👨‍🚀 They train for years to live and work in zero gravity. On the ISS, they conduct experiments, maintain equipment, and help us learn about living in space. Fun fact: In space, astronauts grow about 2 inches taller because their spine stretches without gravity! They also have to exercise 2.5 hours daily to prevent muscle loss. What about space travel interests you? 🚀";
+  }
+  
+  return null; // No direct match, use AI
+};
 
 export default async function handler(req, res) {
-  // Set CORS headers for all requests
+  // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
-  // Handle preflight OPTIONS requests
+  // Handle preflight requests
   if (req.method === 'OPTIONS') {
     res.status(200).end();
     return;
   }
 
-  // Only allow POST requests for chat
+  // Only allow POST requests
   if (req.method !== 'POST') {
-    return res.status(405).json({ 
-      error: 'Method not allowed',
-      message: 'This endpoint only accepts POST requests'
-    });
+    return res.status(405).json({ error: 'Method not allowed' });
   }
-
   try {
     const { message } = req.body;
     
-    // Validate input
-    if (!message || typeof message !== 'string' || message.trim().length === 0) {
-      return res.status(400).json({ 
-        error: 'Invalid input',
-        message: 'A valid message string is required'
-      });
+    if (!message) {
+      return res.status(400).json({ error: 'Message is required' });
     }
 
-    console.log('💬 CosmoBuddy received message:', message.substring(0, 100) + '...');
+    console.log('� User message:', message);
     
-    // Simple typo corrections
-    const fixTypos = (text) => {
-      const corrections = {
-        'wat': 'what', 'hw': 'how', 'u': 'you', 'ur': 'your', 'cant': 'cannot',
-        'wnt': 'want', 'teh': 'the', 'adn': 'and', 'eart': 'earth', 'mars': 'Mars',
-        'planit': 'planet', 'astronot': 'astronaut', 'nasa': 'NASA', 'spac': 'space'
-      };
-      
-      let fixed = text.toLowerCase();
-      Object.entries(corrections).forEach(([typo, correct]) => {
-        const regex = new RegExp('\\b' + typo + '\\b', 'g');
-        fixed = fixed.replace(regex, correct);
-      });
-      return fixed;
-    };
-
-    // Direct responses for common space topics
-    const getDirectResponse = (message) => {
-      const msg = message.toLowerCase();
-      
-      if (msg.includes('hello') || msg.includes('hi') || msg.includes('hey') || msg.includes('greet')) {
-        return "Hey there! 👋 I'm CosmoBuddy, your space-loving AI friend! I'm super excited to chat with you about the cosmos, science, or anything else on your mind. What would you like to explore today? 🚀✨";
-      }
-      
-      if (msg.includes('mars')) {
-        return "Mars is absolutely fascinating! 🔴 It's the fourth planet from the Sun, about half Earth's size, with two small moons named Phobos and Deimos. The red color comes from iron oxide (rust) covering its surface! Temperatures range from -195°F to 70°F, and scientists have found evidence of ancient water flows. We're actively searching for signs of past life there! What aspect of Mars interests you most? 🚀";
-      }
-      
-      if (msg.includes('earth')) {
-        return "Earth is our incredible blue marble! 🌍 It's the third planet from the Sun and the only known planet with life. About 71% of Earth's surface is covered in water, which gives it that beautiful blue appearance from space. We have one moon, and it takes exactly 365.25 days to orbit the Sun. Our atmosphere is perfect for life - 78% nitrogen, 21% oxygen! What would you like to know about our amazing home planet? ✨";
-      }
-      
-      if (msg.includes('space') || msg.includes('universe') || msg.includes('cosmos')) {
-        return "Space is absolutely mind-blowing! 🌌 The universe is about 13.8 billion years old and contains billions of galaxies, each with billions of stars. Our own galaxy, the Milky Way, has over 200 billion stars! Space might seem empty, but it's filled with incredible phenomena like black holes, nebulae, pulsars, and potentially habitable exoplanets. What aspect of the cosmos fascinates you most? 🚀";
-      }
-      
-      if (msg.includes('sun')) {
-        return "The Sun is our magnificent local star! ☀️ It's a massive ball of hot plasma, about 109 times wider than Earth and 333,000 times more massive! The core temperature reaches an incredible 27 million degrees Fahrenheit. It generates energy through nuclear fusion, converting hydrogen into helium and providing all the energy for life on Earth. Fun fact: The Sun is about 4.6 billion years old and has enough fuel to keep shining for another 5 billion years! 🌟";
-      }
-      
-      if (msg.includes('moon')) {
-        return "The Moon is Earth's faithful companion! 🌙 It's about 1/4 the size of Earth and sits roughly 238,855 miles away. The Moon creates our ocean tides and helps stabilize Earth's rotation and seasons. Here's something cool: the same side always faces Earth because the Moon's rotation period matches its orbital period - this is called tidal locking! The Apollo missions brought back 842 pounds of moon rocks between 1969-1972. What would you like to know about our lunar neighbor? 🌕";
-      }
-      
-      if (msg.includes('rocket') || msg.includes('launch')) {
-        return "Rockets are engineering marvels! 🚀 They work on Newton's third law - for every action, there's an equal and opposite reaction. They burn fuel to create extremely hot gases that shoot out the bottom at incredible speeds, pushing the rocket upward. The faster the exhaust velocity, the more thrust generated! Modern rockets use liquid oxygen with fuels like RP-1 or hydrogen. It's essentially a controlled explosion pointing downward to go up! Pretty amazing engineering, right? ✨";
-      }
-      
-      if (msg.includes('black hole')) {
-        return "Black holes are absolutely mind-bending! 🕳️ They're regions in space where gravity is so incredibly strong that nothing can escape once it crosses the event horizon - not even light! They form when massive stars (at least 20-25 times our Sun's mass) collapse at the end of their lives. Here's the really wild part: time actually slows down near them due to Einstein's theory of relativity! In 2019, scientists captured the first image of a black hole in galaxy M87. Space physics is incredible! 🌌";
-      }
-      
-      if (msg.includes('astronaut') || msg.includes('spacewalk')) {
-        return "Astronauts are real-life space heroes! 👨‍🚀 They undergo years of intense training to live and work in the harsh environment of space. On the International Space Station, they conduct scientific experiments, maintain equipment, and help us learn about long-term space habitation. Fun fact: In microgravity, astronauts actually grow about 2 inches taller because their spine stretches without gravity's compression! They also must exercise 2.5 hours daily to prevent muscle and bone loss. What aspect of space exploration interests you most? 🚀";
-      }
-      
-      return null; // No direct match found, will use AI
-    };
-    
-    // Process the message
+    // Fix common typos
     const fixedMessage = fixTypos(message);
-    const wasFixed = message !== fixedMessage;
+    console.log('🔧 Fixed message:', fixedMessage);
     
-    console.log('🔧 Message processing:', wasFixed ? 'Typos corrected' : 'No corrections needed');
-    
-    // Try direct response first (faster and more reliable)
+    // Try direct response first
     const directResponse = getDirectResponse(fixedMessage);
     if (directResponse) {
-      console.log('⚡ Using direct response for fast reply');
-      return res.status(200).json({ 
+      console.log('⚡ Direct response used');
+      return res.json({ 
         response: directResponse,
         status: 'direct',
-        typosFixed: wasFixed,
-        source: 'CosmoBuddy Direct Knowledge'
+        typosFixed: message !== fixedMessage
       });
     }
 
-    // Fall back to Google Gemini AI for complex/unique questions
-    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-    
-    if (!GEMINI_API_KEY) {
-      console.error('❌ GEMINI_API_KEY environment variable not found');
-      return res.status(200).json({ 
-        response: "I'm having some technical difficulties with my AI brain right now, but I'm still here to help! 🛠️ Try asking me something about space - I have lots of knowledge stored up about planets, stars, rockets, and space missions! 🚀✨",
-        status: 'fallback',
-        typosFixed: wasFixed,
-        source: 'CosmoBuddy Fallback'
-      });
-    }
+    // Use AI for complex questions
+    const aiPrompt = `You are CosmoBuddy, a friendly AI assistant who loves space and science. 
 
-    console.log('🤖 Using Gemini AI for complex query...');
+User asked: "${fixedMessage}"
 
-    const aiPrompt = `You are CosmoBuddy, the friendly and enthusiastic AI assistant for NASA CosmoScope. You love space, science, and helping people explore the cosmos.
+Give a helpful, enthusiastic response in 1-2 sentences. Be friendly and conversational. If it's about space, show excitement with appropriate emojis.`;
 
-User message: "${fixedMessage}"
+    console.log('🤖 Using AI for response...');
 
-Respond as CosmoBuddy with:
-- Natural, conversational tone (like talking to a friend)
-- Enthusiasm for space and science
-- 1-2 sentences maximum
-- Use appropriate emojis (🚀🌌⭐🌟✨) if relevant
-- Be helpful and encouraging
-
-Keep it concise but engaging!`;
-
-    const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        contents: [{ 
-          parts: [{ text: aiPrompt }] 
-        }],
+        contents: [{ parts: [{ text: aiPrompt }] }],
         generationConfig: {
-          temperature: 0.7,
+          temperature: 0.6,
           maxOutputTokens: 150,
-          topP: 0.9,
-          topK: 20
-        },
-        safetySettings: [
-          {
-            category: "HARM_CATEGORY_HARASSMENT",
-            threshold: "BLOCK_MEDIUM_AND_ABOVE"
-          },
-          {
-            category: "HARM_CATEGORY_HATE_SPEECH", 
-            threshold: "BLOCK_MEDIUM_AND_ABOVE"
-          }
-        ]
+          topP: 0.8,
+          topK: 10
+        }
       })
     });
 
-    if (!geminiResponse.ok) {
-      console.error(`❌ Gemini API error: ${geminiResponse.status} ${geminiResponse.statusText}`);
-      throw new Error(`Gemini API responded with status ${geminiResponse.status}`);
+    if (!response.ok) {
+      throw new Error(`AI Error: ${response.status}`);
     }
 
-    const geminiData = await geminiResponse.json();
-    const aiResponse = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
+    const data = await response.json();
+    const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
     
     if (aiResponse && aiResponse.trim()) {
-      console.log('✅ Gemini AI response generated successfully');
-      return res.status(200).json({ 
+      console.log('✅ AI response:', aiResponse);
+      res.json({ 
         response: aiResponse.trim(),
         status: 'ai',
-        typosFixed: wasFixed,
-        source: 'CosmoBuddy AI (Gemini)'
+        typosFixed: message !== fixedMessage
       });
     } else {
-      console.log('🎯 Gemini returned empty response, using fallback');
-      return res.status(200).json({ 
-        response: "I'm here and ready to help! What would you like to know? I love talking about space, science, NASA missions, or anything else that sparks your curiosity! 🚀✨",
+      console.log('🎯 Using fallback');
+      res.json({ 
+        response: "I'm here and ready to help! What would you like to know? I love talking about space, science, or anything else! 🚀✨",
         status: 'fallback',
-        typosFixed: wasFixed,
-        source: 'CosmoBuddy Fallback'
+        typosFixed: message !== fixedMessage
       });
     }
 
   } catch (error) {
-    console.error('❌ CosmoBuddy API Error:', error.message);
-    
-    // Return a friendly error response instead of throwing
-    return res.status(200).json({ 
-      response: "Oops! I'm having some technical hiccups right now! 🛠️ But don't worry - I'm still here to help. Try asking me something about space and I'll do my best to give you an awesome answer! 🚀✨",
-      status: 'error',
-      typosFixed: false,
-      source: 'CosmoBuddy Error Handler',
-      error: error.message
+    console.error('❌ Error:', error);
+    res.status(500).json({ 
+      error: 'Failed to get response',
+      message: error.message 
     });
   }
 }
