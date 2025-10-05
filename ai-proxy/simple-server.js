@@ -3,8 +3,8 @@ import cors from 'cors';
 import fetch from 'node-fetch';
 
 const app = express();
-const PORT = 3001;
-const GEMINI_API_KEY = 'AIzaSyBH7RuCsY0Dze6oKsu5DIrKcfr0aY0lokg';
+const PORT = process.env.PORT || 3001;
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyBH7RuCsY0Dze6oKsu5DIrKcfr0aY0lokg';
 
 // Simple typo corrections
 const fixTypos = (text) => {

@@ -87,7 +87,11 @@ Chat naturally - imagine you're texting a friend who happens to know a lot about
       
       const contextualPrompt = buildConversationContext(userMessage);
       
-      const response = await fetch('http://localhost:3001/api/chat', {
+      // Use Vercel API in production, local server in development
+      const isProduction = !window.location.hostname.includes('localhost');
+      const apiUrl = isProduction ? '/api/chat' : 'http://localhost:3001/api/chat';
+      
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
