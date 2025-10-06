@@ -1,5 +1,5 @@
 // Vercel API - Enhanced to handle both simple messages and contextual prompts
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyBH7RuCsY0Dze6oKsu5DIrKcfr0aY0lokg';
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'YOUR_GEMINI_KEY_HERE';
 
 // Simple typo corrections (exact copy from localhost)
 const fixTypos = (text) => {
