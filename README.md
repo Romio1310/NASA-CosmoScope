@@ -117,7 +117,7 @@ This project is open source and available under the [MIT License](LICENSE).
 
 ## 🌐 Live Demo
 
-Visit the live application: [NASA CosmoScope](https://romio1310.github.io/NASA-CosmoScope/)
+Visit the live application: [NASA CosmoScope](https://nasa-cosmo-scope.vercel.app/)
 
 ---
 
